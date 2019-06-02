@@ -91,5 +91,6 @@ int main(void) {
     printf("%02X ", text[1]);
 
     printf("%.3lf millis", (double)end-start);
+    
 return 0;
 }

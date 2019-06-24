@@ -57,7 +57,7 @@ for (j=0; j<4; j++)
    for(i=0; i<4; i++){
       source[i*4+j] = sbox[(source[i*4+j])];
    }
-}
+}//여기서의 source 가 lookup
 
 void Inverse_Sub_Byte(unsigned char* source){
    
@@ -89,7 +89,7 @@ for (i=1; i<4; i++){
    }
    }
    }
-}
+} //여기서의 soruce 가 shiftrow의 lookup
 
 unsigned char MC(unsigned char src, unsigned int p){
    /*(source[0*4+j]*2)^(source[0*4+j] & 0x80 ? 0x1b : 0);//*2
@@ -138,7 +138,7 @@ for (j=0; j<4; j++){
   source[2*4+j] = tmp[2*4+j];
   source[3*4+j] = tmp[3*4+j];
   }
-}
+}//여기서의 source 가 lookup
 
 void Inverse_Mix_Column(unsigned char * source){
 char i,j;

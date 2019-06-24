@@ -1,7 +1,9 @@
+   #define _CRT_SECURE_NO_WARNINGS
    #include <stdio.h> 
    #include <stdlib.h>
    #include <string.h>
    #include <time.h>
+
    static const unsigned int Inverse_sbox[256] = {
       0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
       0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB,
@@ -20,7 +22,8 @@
       0xA0, 0xE0, 0x3B, 0x4D, 0xAE, 0x2A, 0xF5, 0xB0, 0xC8, 0xEB, 0xBB, 0x3C, 0x83, 0x53, 0x99, 0x61,
       0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
    };
-      static const unsigned char sbox[256] = {
+   
+   static const unsigned char sbox[256] = {
       0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
       0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
       0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -39,15 +42,19 @@
       0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
    };
 
+     unsigned char  MC_Lookup_2[256] ; //2
+     unsigned char  MC_Lookup_3[256] ;//2+1
+     unsigned char  MC_Lookup_09[256] ; //8+1
+     unsigned char  MC_Lookup_0b[256] ; // 8+2+1
+     unsigned char  MC_Lookup_0d[256] ; //8+4+1
+     unsigned char  MC_Lookup_0e[256] ;// 8+4+2
+
    void print_hex(unsigned char *t)
    {
    unsigned char i=0;
 
    for(i = 0; i<4; i++){
-      printf("%02x ", t[i*4+0]);
-      printf("%02x ", t[i*4+1]);
-      printf("%02x ", t[i*4+2]);
-      printf("%02x ", t[i*4+3]);
+      printf("%02x %02x %02x %02x ", t[i*4+0], t[i*4+1], t[i*4+2], t[i*4+3]);
       printf("\n"); 
    }
    printf("\n");
@@ -66,30 +73,32 @@
       printf("\n");
    }
    
-unsigned char MC(unsigned char src, unsigned int p){
-   int i;
+void MC_lookuptable_make(){
+   unsigned long long i,j;
+   unsigned char src;
    unsigned char tmp[4];
-   tmp [0] = src;
-   
-   for (i=1; i<4; i++){
-      src = (src*2)^(src& 0x80 ? 0x1b : 0);
-      tmp [i] = src;
+
+   for (j=0; j< 0x100; j++){
+        src= j;
+        tmp [0] = src;
+        for (i=1; i<4; i++){
+            src = (src*2)^(src & 0x80 ? 0x1b : 0);
+            tmp [i] = src;
+        }
+      MC_Lookup_2[j] = tmp[1]; //2
+      MC_Lookup_3[j] = tmp[1] ^tmp[0]; //2+1
+      MC_Lookup_09[j] = tmp[3]^tmp[0];  //8+1
+      MC_Lookup_0b[j] = tmp[3]^tmp[1]^tmp[0]; // 8+2+1
+      MC_Lookup_0d[j] = tmp[3]^tmp[2]^tmp[0]; //8+4+1
+      MC_Lookup_0e[j] = tmp[3]^tmp[2]^tmp[1]; // 8+4+2
+    // if(j%16==0)printf("\n");
+    //   printf("0x%02x, ",MC_Lookup_2[j]);
    }
-   
-   switch (p) {
-      case 2 : src = tmp[1]; break; //2
-      case 3 : src = tmp[1]^tmp[0]; break; //2+1
-      case 9 : src = tmp[3]^tmp[0]; break; //8+1
-      case 0x0b : src = tmp[3] ^ tmp[1] ^ tmp[0] ;break; // 8+2+1
-      case 0x0d : src = tmp[3]^tmp[2]^tmp[0]; break; //8+4+1
-      case 0x0e : src = tmp[3]^tmp[2]^tmp[1]; break; // 8+4+2
-   }
-   
-   return src;
+   return ;
 }
 
    unsigned char W[176];
-   void Key_Schedule(unsigned char* source){
+   void Key_Schedule(unsigned long long* key){
    unsigned char Rcon[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -97,6 +106,21 @@ unsigned char MC(unsigned char src, unsigned int p){
                      };
 
    char j;
+   unsigned char source[16];
+//--------------------------------------------------------------
+     // printf("cipher_key\n"); 
+      source[0*4+0]= (unsigned char)(key[0]>>8*7);   source[0*4+1]= (unsigned char)(key[0]>>8*3); 
+      source[1*4+0]= (unsigned char)(key[0]>>8*6);   source[1*4+1]= (unsigned char)(key[0]>>8*2);
+      source[2*4+0]= (unsigned char)(key[0]>>8*5);   source[2*4+1]= (unsigned char)(key[0]>>8*1);
+      source[3*4+0]= (unsigned char)(key[0]>>8*4);   source[3*4+1]= (unsigned char)(key[0]>>8*0);
+      
+      source[0*4+2]= (unsigned char)(key[1]>>(8*7));  source[0*4+3]= (unsigned char)(key[1]>>8*3); 
+      source[1*4+2]= (unsigned char)(key[1]>>8*6);    source[1*4+3]= (unsigned char)(key[1]>>8*2);
+      source[2*4+2]= (unsigned char)(key[1]>>8*5);   source[2*4+3]= (unsigned char)(key[1]>>8*1);
+      source[3*4+2]= (unsigned char)(key[1]>>8*4);   source[3*4+3]= (unsigned char)(key[1]>>(8*0));
+      // print_hex(cipher_key);
+//--------------------------------------------------------------
+
    for(j=0; j<=3; j++){
       W[0*11*4+j] = source[0*4+j];
       W[1*11*4+j] = source[1*4+j];    
@@ -124,11 +148,11 @@ unsigned char MC(unsigned char src, unsigned int p){
    }
 
    /*암호화 과정*/
-   void AES_Encrypt(unsigned long long *text, unsigned long long *key, unsigned long long *Encrypt_text_){
-      unsigned char plainText[16], cipher_key[16]; 
+   void AES_Encrypt(unsigned long long *text, unsigned long long *Encrypt_text_){
+      unsigned char plainText[16];
       unsigned char Encrypt_text[16];
       unsigned int i,j,k;
-
+\
       /*--------------------status input------------------------------------*/
       // printf("Encrypt_text\n"); 
       plainText[0*4+0]= (unsigned char)(text[0]>>8*7);   plainText[0*4+1]= (unsigned char)(text[0]>>8*3); 
@@ -141,21 +165,8 @@ unsigned char MC(unsigned char src, unsigned int p){
       plainText[2*4+2]= (unsigned char)(text[1]>>8*5);   plainText[2*4+3]= (unsigned char)(text[1]>>8*1);
       plainText[3*4+2]= (unsigned char)(text[1]>>8*4);   plainText[3*4+3]= (unsigned char)(text[1]>>8*0);
       // print_hex(plainText);
+      /*----------------------------------------------------------------nnn--*/
 
-      // printf("cipher_key\n"); 
-      cipher_key[0*4+0]= (unsigned char)(key[0]>>8*7);   cipher_key[0*4+1]= (unsigned char)(key[0]>>8*3); 
-      cipher_key[1*4+0]= (unsigned char)(key[0]>>8*6);   cipher_key[1*4+1]= (unsigned char)(key[0]>>8*2);
-      cipher_key[2*4+0]= (unsigned char)(key[0]>>8*5);   cipher_key[2*4+1]= (unsigned char)(key[0]>>8*1);
-      cipher_key[3*4+0]= (unsigned char)(key[0]>>8*4);   cipher_key[3*4+1]= (unsigned char)(key[0]>>8*0);
-      
-      cipher_key[0*4+2]= (unsigned char)(key[1]>>(8*7));  cipher_key[0*4+3]= (unsigned char)(key[1]>>8*3); 
-      cipher_key[1*4+2]= (unsigned char)(key[1]>>8*6);    cipher_key[1*4+3]= (unsigned char)(key[1]>>8*2);
-      cipher_key[2*4+2]= (unsigned char)(key[1]>>8*5);   cipher_key[2*4+3]= (unsigned char)(key[1]>>8*1);
-      cipher_key[3*4+2]= (unsigned char)(key[1]>>8*4);   cipher_key[3*4+3]= (unsigned char)(key[1]>>(8*0));
-      // print_hex(cipher_key);
-/*------------------------------------------------------------------*/
-
-      Key_Schedule(cipher_key);
       i=0;
       for (j=0; j<4; j++){
          plainText[j*4+0] = plainText[j*4+0]^W[j*4*11+i*4+0];
@@ -166,10 +177,10 @@ unsigned char MC(unsigned char src, unsigned int p){
       
    for (i=1; i<10; i++){
       for (j=0; j<4; j++){
-         Encrypt_text[0*4+j] =  MC(sbox[(plainText[0*4+j])],2) ^ MC(sbox[(plainText[1*4+(j+1)%4])],3) ^   (sbox[(plainText[2*4+(j+2)%4])])   ^   (sbox[(plainText[3*4+(j+3)%4])])^W[0*4*11+i*4+j];
-         Encrypt_text[1*4+j] =    (sbox[(plainText[0*4+j])])   ^ MC(sbox[(plainText[1*4+(j+1)%4])],2) ^ MC(sbox[(plainText[2*4+(j+2)%4])],3) ^   (sbox[(plainText[3*4+(j+3)%4])])^W[1*4*11+i*4+j];
-         Encrypt_text[2*4+j] =    (sbox[(plainText[0*4+j])])   ^   (sbox[(plainText[1*4+(j+1)%4])])   ^ MC(sbox[(plainText[2*4+(j+2)%4])],2) ^ MC(sbox[(plainText[3*4+(j+3)%4])],3)^W[2*4*11+i*4+j];
-         Encrypt_text[3*4+j] =  MC(sbox[(plainText[0*4+j])],3) ^   (sbox[(plainText[1*4+(j+1)%4])])   ^   (sbox[(plainText[2*4+(j+2)%4])])   ^ MC(sbox[(plainText[3*4+(j+3)%4])],2)^W[3*4*11+i*4+j];
+         Encrypt_text[0*4+j] =  MC_Lookup_2[sbox[plainText[0*4+j]]]  ^  MC_Lookup_3[sbox[plainText[1*4+(j+1)%4]]] ^             sbox[plainText[2*4+(j+2)%4]]  ^   sbox[plainText[3*4+(j+3)%4]]            ^W[0*4*11+i*4+j];
+         Encrypt_text[1*4+j] =              sbox[plainText[0*4+j]]   ^  MC_Lookup_2[sbox[plainText[1*4+(j+1)%4]]] ^ MC_Lookup_3[sbox[plainText[2*4+(j+2)%4]]] ^   sbox[plainText[3*4+(j+3)%4]]            ^W[1*4*11+i*4+j];
+         Encrypt_text[2*4+j] =              sbox[plainText[0*4+j]]   ^             sbox[plainText[1*4+(j+1)%4]]   ^ MC_Lookup_2[sbox[plainText[2*4+(j+2)%4]]] ^ MC_Lookup_3[sbox[plainText[3*4+(j+3)%4]]] ^W[2*4*11+i*4+j];
+         Encrypt_text[3*4+j] =  MC_Lookup_3[sbox[plainText[0*4+j]]]  ^             sbox[plainText[1*4+(j+1)%4]]   ^             sbox[plainText[2*4+(j+2)%4]]  ^ MC_Lookup_2[sbox[plainText[3*4+(j+3)%4]]] ^W[3*4*11+i*4+j];
       }
       for(k=0; k<4; k++){
          plainText[0*4+k] = Encrypt_text[0*4+k];
@@ -187,7 +198,7 @@ unsigned char MC(unsigned char src, unsigned int p){
          Encrypt_text[3*4+j] = sbox[(plainText[3*4+(j+3)%4])]^W[3*4*11+i*4+j];
       }
       /*-------------------------------------------------------------*/
-      print_hex(Encrypt_text);
+      printf("dfsdf : %02x\n",sbox[(plainText[1*4+(j+1)%4])]^W[1*4*11+10*4+0]); print_hex(Encrypt_text);
       for (i=0; i<4; i++){
          Encrypt_text_[0] |= Encrypt_text[(i)*4+0];
          Encrypt_text_[0] = Encrypt_text_[0]<<8;
@@ -208,8 +219,7 @@ unsigned char MC(unsigned char src, unsigned int p){
    }
 
    /*복호화  과정*/
-   void AES_Decrypt( unsigned long long * Encrypt_text_,  unsigned long long * key, unsigned long long*Decrypt_text_){
-      unsigned char cipher_key[16]; 
+   void AES_Decrypt( unsigned long long * Encrypt_text_, unsigned long long*Decrypt_text_){
       unsigned char Encrypt_text[16], Decrypt_text[16];
       unsigned int i,j,k=0;
 
@@ -225,21 +235,8 @@ unsigned char MC(unsigned char src, unsigned int p){
       Encrypt_text[2*4+2]= (unsigned char)(Encrypt_text_[1]>>8*5);   Encrypt_text[2*4+3]= (unsigned char)(Encrypt_text_[1]>>8*1);
       Encrypt_text[3*4+2]= (unsigned char)(Encrypt_text_[1]>>8*4);   Encrypt_text[3*4+3]= (unsigned char)(Encrypt_text_[1]>>8*0);
       // print_hex(Encrypt_text);
-
-      // printf("cipher_key\n"); 
-      cipher_key[0*4+0]= (unsigned char)(key[0]>>8*7);   cipher_key[0*4+1]= (unsigned char)(key[0]>>8*3); 
-      cipher_key[1*4+0]= (unsigned char)(key[0]>>8*6);   cipher_key[1*4+1]= (unsigned char)(key[0]>>8*2);
-      cipher_key[2*4+0]= (unsigned char)(key[0]>>8*5);   cipher_key[2*4+1]= (unsigned char)(key[0]>>8*1);
-      cipher_key[3*4+0]= (unsigned char)(key[0]>>8*4);   cipher_key[3*4+1]= (unsigned char)(key[0]>>8*0);
       
-      cipher_key[0*4+2]= (unsigned char)(key[1]>>(8*7));  cipher_key[0*4+3]= (unsigned char)(key[1]>>8*3); 
-      cipher_key[1*4+2]= (unsigned char)(key[1]>>8*6);    cipher_key[1*4+3]= (unsigned char)(key[1]>>8*2);
-      cipher_key[2*4+2]= (unsigned char)(key[1]>>8*5);   cipher_key[2*4+3]= (unsigned char)(key[1]>>8*1);
-      cipher_key[3*4+2]= (unsigned char)(key[1]>>8*4);   cipher_key[3*4+3]= (unsigned char)(key[1]>>(8*0));
-      // print_hex(cipher_key);
-     
-      Key_Schedule(cipher_key);
-      
+      //------------------------------------------------------
       i=10;
        for (j=0; j<4; j++){
 
@@ -252,12 +249,13 @@ unsigned char MC(unsigned char src, unsigned int p){
 
       for (i=9; i>0; i--) {
          for(j=0; j<4; j++){
-         Encrypt_text[0*4+j] = Inverse_sbox[MC(Decrypt_text[0*4+j      ]^W[0*4*11+i*4+j],0x0E)       ^ MC(Decrypt_text[1*4+j]^W[1*4*11+i*4+j],0x0B)            ^MC(Decrypt_text[2*4+j]^W[2*4*11+i*4+j],0x0D) ^ MC(Decrypt_text[3*4+j]^W[3*4*11+i*4+j],0x09)];
-         Encrypt_text[1*4+j] = Inverse_sbox[MC(Decrypt_text[0*4+(j+3)%4]^W[0*4*11+i*4+(j+3)%4],0x09) ^ MC(Decrypt_text[1*4+(j+3)%4]^W[1*4*11+i*4+(j+3)%4],0x0E)^MC(Decrypt_text[2*4+(j+3)%4]^W[2*4*11+i*4+(j+3)%4],0x0B) ^ MC(Decrypt_text[3*4+(j+3)%4]^W[3*4*11+i*4+(j+3)%4],0x0D)];
-         Encrypt_text[2*4+j] = Inverse_sbox[MC(Decrypt_text[0*4+(j+2)%4]^W[0*4*11+i*4+(j+2)%4],0x0D) ^ MC(Decrypt_text[1*4+(j+2)%4]^W[1*4*11+i*4+(j+2)%4],0x09)^MC(Decrypt_text[2*4+(j+2)%4]^W[2*4*11+i*4+(j+2)%4],0x0E) ^ MC(Decrypt_text[3*4+(j+2)%4]^W[3*4*11+i*4+(j+2)%4],0x0B)];
-         Encrypt_text[3*4+j] = Inverse_sbox[MC(Decrypt_text[0*4+(j+1)%4]^W[0*4*11+i*4+(j+1)%4],0x0B) ^ MC(Decrypt_text[1*4+(j+1)%4]^W[1*4*11+i*4+(j+1)%4],0x0D)^MC(Decrypt_text[2*4+(j+1)%4]^W[2*4*11+i*4+(j+1)%4],0x09) ^ MC(Decrypt_text[3*4+(j+1)%4]^W[3*4*11+i*4+(j+1)%4],0x0E)];
+         Encrypt_text[0*4+j] = Inverse_sbox[MC_Lookup_0e[Decrypt_text[0*4+j]^W[0*4*11+i*4+j]]             ^ MC_Lookup_0b[Decrypt_text[1*4+j]^W[1*4*11+i*4+j]]            ^MC_Lookup_0d[Decrypt_text[2*4+j]      ^W[2*4*11+i*4+j]]       ^ MC_Lookup_09[Decrypt_text[3*4+j]^W[3*4*11+i*4+j]]];
+         Encrypt_text[1*4+j] = Inverse_sbox[MC_Lookup_09[Decrypt_text[0*4+(j+3)%4]^W[0*4*11+i*4+(j+3)%4]] ^ MC_Lookup_0e[Decrypt_text[1*4+(j+3)%4]^W[1*4*11+i*4+(j+3)%4]]^MC_Lookup_0b[Decrypt_text[2*4+(j+3)%4]^W[2*4*11+i*4+(j+3)%4]] ^ MC_Lookup_0d[Decrypt_text[3*4+(j+3)%4]^W[3*4*11+i*4+(j+3)%4]]];
+         Encrypt_text[2*4+j] = Inverse_sbox[MC_Lookup_0d[Decrypt_text[0*4+(j+2)%4]^W[0*4*11+i*4+(j+2)%4]] ^ MC_Lookup_09[Decrypt_text[1*4+(j+2)%4]^W[1*4*11+i*4+(j+2)%4]]^MC_Lookup_0e[Decrypt_text[2*4+(j+2)%4]^W[2*4*11+i*4+(j+2)%4]] ^ MC_Lookup_0b[Decrypt_text[3*4+(j+2)%4]^W[3*4*11+i*4+(j+2)%4]]];
+         Encrypt_text[3*4+j] = Inverse_sbox[MC_Lookup_0b[Decrypt_text[0*4+(j+1)%4]^W[0*4*11+i*4+(j+1)%4]] ^ MC_Lookup_0d[Decrypt_text[1*4+(j+1)%4]^W[1*4*11+i*4+(j+1)%4]]^MC_Lookup_09[Decrypt_text[2*4+(j+1)%4]^W[2*4*11+i*4+(j+1)%4]] ^ MC_Lookup_0e[Decrypt_text[3*4+(j+1)%4]^W[3*4*11+i*4+(j+1)%4]]];
 
        }
+      // print_hex(Encrypt_text);
 
          for(k=0; k<4; k++){
             Decrypt_text[0*4+k] = Encrypt_text[0*4+k];
@@ -275,7 +273,7 @@ unsigned char MC(unsigned char src, unsigned int p){
          Decrypt_text[3*4+j] = Decrypt_text[3*4+j]^W[3*4*11+i*4+j];
       }
       /*-----------------------*/
-      print_hex(Decrypt_text);
+      // print_hex(Decrypt_text);
        for (i=0; i<4; i++){
          Decrypt_text_[0] |= Decrypt_text[(i)*4+0];
          Decrypt_text_[0] = Decrypt_text_[0]<<8;
@@ -296,21 +294,31 @@ unsigned char MC(unsigned char src, unsigned int p){
    }
 
    int main(){  
-      unsigned long long Encrypt_text[16]={};
-      unsigned long long Decrypt_text[16]={};
+      unsigned long long Encrypt_text[2]={};
+      unsigned long long Decrypt_text[2]={};
       unsigned long long text[2] = {0x0123456789abcdef,0xfedcba9876543210};
       unsigned long long key[2] = {0x0f1571c947d9e859,0x0cb7add6af7f6798};
-     
+      clock_t start, end; 
       printf("%llx %llx\n", text[0], text[1]);
 
-      printf("AES_Encrypt\n");
-      AES_Encrypt(text, key,Encrypt_text);
+      Key_Schedule(key);
+      MC_lookuptable_make();
+
+      start = clock();
+            
+              for(unsigned long long d=0; d<1; d++)  
+              {   Encrypt_text[0]=0x0000000000000000;
+                  Encrypt_text[1]=0x0000000000000000;
+                  Decrypt_text[0]=0x0000000000000000;
+                  Decrypt_text[1]=0x0000000000000000;
+                 AES_Encrypt(text, Encrypt_text);
+                 AES_Decrypt(Encrypt_text, Decrypt_text);
+               }
+      end = clock();
+
       printf("AES_Encrypt: %llx %llx\n", Encrypt_text[0], Encrypt_text[1]);
-
-      printf("AES_Decrypt.\n");
-      AES_Decrypt(Encrypt_text, key,Decrypt_text);
       printf("AES_Decrypt : %llx %llx\n", Decrypt_text[0], Decrypt_text[1]);
-
+      printf("%d second!\n", (end-start)/1000);
       system("pause");         
       return 0;         
    }

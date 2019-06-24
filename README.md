@@ -10,7 +10,7 @@ in Cryptography_Algorithm
   
   2. DES find key (2018)
   
-  ![findkey](./Cryptography_Algorithm/2018_01_DES/전수조사/밀리초로 나옴.PNG)
+  ![findkey](./Cryptography_Algorithm/2018_01_DES/MD/DES_brute-force.PNG)
   
 **2. AES**
   

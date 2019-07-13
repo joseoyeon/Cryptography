@@ -439,7 +439,13 @@ void Key_Schedule(uint32_t key[4], uint32_t AES_KEY[44])
 		}
 		AES_KEY[j] = AES_KEY[j - 4] ^ temp;
 	}
+
+	
+//****
+// printf("\n key : %08X %08X %08X %08X\n", AES_KEY[40], AES_KEY[41], AES_KEY[42], AES_KEY[43]);
+//****
 }
+
 /*암호화 과정*/
 void AES_Encrypt(uint32_t* Encrypt_text, uint32_t* AES_KEY)
 {
@@ -477,9 +483,8 @@ void AES_Encrypt(uint32_t* Encrypt_text, uint32_t* AES_KEY)
 /*복호화  과정*/
 void AES_Decrypt(uint32_t* Decrypt_text, uint32_t* AES_KEY)
 {
-	uint8_t i, j = 0;
+	uint8_t i= 0;
 	uint32_t Text[4] = {0, };
-	uint32_t key;
 
 	//add round key
 	Text[0] = Decrypt_text[0] ^ AES_KEY[40];
@@ -490,16 +495,16 @@ void AES_Decrypt(uint32_t* Decrypt_text, uint32_t* AES_KEY)
 	for (i = 36; i > 0; i-=4)
 	{
 		Decrypt_text[0] = inv_t0[downbyte(Text[0], 3)] ^ inv_t1[downbyte(Text[3], 2)] ^ inv_t2[downbyte(Text[2], 1)] ^ inv_t3[downbyte(Text[1], 0)] ^
-			(Table0_key_dec[downbyte(AES_KEY[i + 0], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 0], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 0], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 0], 0)]);
+		(Table0_key_dec[downbyte(AES_KEY[i + 0], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 0], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 0], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 0], 0)]);
 
 		Decrypt_text[1] = inv_t0[downbyte(Text[1], 3)] ^ inv_t1[downbyte(Text[0], 2)] ^ inv_t2[downbyte(Text[3], 1)] ^ inv_t3[downbyte(Text[2], 0)] ^
-			(Table0_key_dec[downbyte(AES_KEY[i + 1], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 1], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 1], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 1], 0)]);
+		(Table0_key_dec[downbyte(AES_KEY[i + 1], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 1], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 1], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 1], 0)]);
 
 		Decrypt_text[2] = inv_t0[downbyte(Text[2], 3)] ^ inv_t1[downbyte(Text[1], 2)] ^ inv_t2[downbyte(Text[0], 1)] ^ inv_t3[downbyte(Text[3], 0)] ^
-			(Table0_key_dec[downbyte(AES_KEY[i + 2], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 2], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 2], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 2], 0)]);
+		(Table0_key_dec[downbyte(AES_KEY[i + 2], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 2], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 2], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 2], 0)]);
 
 		Decrypt_text[3] = inv_t0[downbyte(Text[3], 3)] ^ inv_t1[downbyte(Text[2], 2)] ^ inv_t2[downbyte(Text[1], 1)] ^ inv_t3[downbyte(Text[0], 0)] ^
-			Table0_key_dec[downbyte(AES_KEY[i + 3], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 3], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 3], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 3], 0)];
+		(Table0_key_dec[downbyte(AES_KEY[i + 3], 3)] ^ Table1_key_dec[downbyte(AES_KEY[i + 3], 2)] ^ Table2_key_dec[downbyte(AES_KEY[i + 3], 1)] ^ Table3_key_dec[downbyte(AES_KEY[i + 3], 0)]);
 
 		Text[0] = Decrypt_text[0];
 		Text[1] = Decrypt_text[1];
@@ -516,9 +521,9 @@ void AES_Decrypt(uint32_t* Decrypt_text, uint32_t* AES_KEY)
 int main()
 { 
 	uint32_t AES_KEY[44] = {0, };
-	uint32_t tmp_text[] = { 0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f };
-    uint32_t key[] = { 0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f };
-	uint32_t text[] = { 0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f };
+	uint32_t tmp_text[] = {0x01234567,0x89abcdef,0xfedcba98,0x76543210};
+    uint32_t key[]  = {0x0f1571c9,0x47d9e859,0x0cb7add6,0xaf7f6798};
+	uint32_t text[] = {0x01234567,0x89abcdef,0xfedcba98,0x76543210};
 	clock_t start, end;
 
 	// lookuptable_make();
@@ -545,7 +550,7 @@ int main()
 	printf("\n Encrypt_text : %08x %08x %08x %08x\n", text[0], text[1], text[2], text[3]);
 
 	AES_Decrypt(text, AES_KEY);
-	printf("Decrypt_text : %08x %08x %08x %08x\n\n", text[0], text[1], text[2], text[3]);
+	printf(" Decrypt_text : %08x %08x %08x %08x\n\n", text[0], text[1], text[2], text[3]);
 
 	system("pause");
 	return 0;
@@ -581,13 +586,31 @@ int main()
 // 		MC_Lookup_0d[j] = tmp[3] ^ tmp[2] ^ tmp[0]; //8+4+1
 // 		MC_Lookup_0e[j] = tmp[3] ^ tmp[2] ^ tmp[1]; // 8+4+2
 // 	}
+//  /*------- t0 table -----*/
+//    for (unsigned int i = 0; i < 0x100; i++)
+//    {
+//       t0[i] = (MC_Lookup_2[sbox[i]] << 24) ^ (sbox[i] << 16) ^ (sbox[i] << 8) ^ MC_Lookup_3[sbox[i]];
+//       t1[i] = (MC_Lookup_3[sbox[i]] << 24) ^ (MC_Lookup_2[sbox[i]] << 16) ^ (sbox[i] << 8) ^ sbox[i];
+//       t2[i] = (sbox[i] << 24) ^ (MC_Lookup_3[sbox[i]] << 16) ^ (MC_Lookup_2[sbox[i]] << 8) ^ sbox[i];
+//       t3[i] = (sbox[i] << 24) ^ (sbox[i] << 16) ^ (MC_Lookup_3[sbox[i]] << 8) ^ MC_Lookup_2[sbox[i]];
+//       //   if(i%16==0) printf("\n");
+//       //     printf("%08x ", t0[i]);
+//    }
+//    /*------- inv_t0 table ------*/
+//    for (unsigned int i = 0; i < 0x100; i++)
+//    {
+//       inv_t0[i] = (MC_Lookup_0e[Inv_s[i]] << 24) ^ (MC_Lookup_09[Inv_s[i]] << 16) ^ (MC_Lookup_0d[Inv_s[i]] << 8) ^ MC_Lookup_0b[Inv_s[i]];
+//       inv_t1[i] = (MC_Lookup_0b[Inv_s[i]] << 24) ^ (MC_Lookup_0e[Inv_s[i]] << 16) ^ (MC_Lookup_09[Inv_s[i]] << 8) ^ MC_Lookup_0d[Inv_s[i]];
+//       inv_t2[i] = (MC_Lookup_0d[Inv_s[i]] << 24) ^ (MC_Lookup_0b[Inv_s[i]] << 16) ^ (MC_Lookup_0e[Inv_s[i]] << 8) ^ MC_Lookup_09[Inv_s[i]];
+//       inv_t3[i] = (MC_Lookup_09[Inv_s[i]] << 24) ^ (MC_Lookup_0d[Inv_s[i]] << 16) ^ (MC_Lookup_0b[Inv_s[i]] << 8) ^ MC_Lookup_0e[Inv_s[i]];
+//    }
 // 	/*------- Table0_key_dec table ------*/
 // 	for (i = 0; i < 0x100; i++)
 // 	{
-// 		// Table0_key_dec[i] = (MC_Lookup_0e[i] << 24) ^ (MC_Lookup_09[i] << 16) ^ (MC_Lookup_0d[i] << 8) ^ MC_Lookup_0b[i];
-// 		// Table1_key_dec[i] = (MC_Lookup_0b[i] << 24) ^ (MC_Lookup_0e[i] << 16) ^ (MC_Lookup_09[i] << 8) ^ MC_Lookup_0d[i];
-// 		// Table2_key_dec[i] = (MC_Lookup_0d[i] << 24) ^ (MC_Lookup_0b[i] << 16) ^ (MC_Lookup_0e[i] << 8) ^ MC_Lookup_09[i];
-// 		// Table3_key_dec[i] = (MC_Lookup_09[i] << 24) ^ (MC_Lookup_0d[i] << 16) ^ (MC_Lookup_0b[i] << 8) ^ MC_Lookup_0e[i];
+// 		Table0_key_dec[i] = (MC_Lookup_0e[i] << 24) ^ (MC_Lookup_09[i] << 16) ^ (MC_Lookup_0d[i] << 8) ^ MC_Lookup_0b[i];
+// 		Table1_key_dec[i] = (MC_Lookup_0b[i] << 24) ^ (MC_Lookup_0e[i] << 16) ^ (MC_Lookup_09[i] << 8) ^ MC_Lookup_0d[i];
+// 		Table2_key_dec[i] = (MC_Lookup_0d[i] << 24) ^ (MC_Lookup_0b[i] << 16) ^ (MC_Lookup_0e[i] << 8) ^ MC_Lookup_09[i];
+// 		Table3_key_dec[i] = (MC_Lookup_09[i] << 24) ^ (MC_Lookup_0d[i] << 16) ^ (MC_Lookup_0b[i] << 8) ^ MC_Lookup_0e[i];
 // 	}
 // 	return;
 // }

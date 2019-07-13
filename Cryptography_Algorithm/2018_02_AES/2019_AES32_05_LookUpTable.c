@@ -247,8 +247,6 @@ void lookuptable_make()
       Table1_dec[i] = (MC_Lookup_0b[Inverse_sbox[i]] << 24) ^ (MC_Lookup_0e[Inverse_sbox[i]] << 16) ^ (MC_Lookup_09[Inverse_sbox[i]] << 8) ^ MC_Lookup_0d[Inverse_sbox[i]];
       Table2_dec[i] = (MC_Lookup_0d[Inverse_sbox[i]] << 24) ^ (MC_Lookup_0b[Inverse_sbox[i]] << 16) ^ (MC_Lookup_0e[Inverse_sbox[i]] << 8) ^ MC_Lookup_09[Inverse_sbox[i]];
       Table3_dec[i] = (MC_Lookup_09[Inverse_sbox[i]] << 24) ^ (MC_Lookup_0d[Inverse_sbox[i]] << 16) ^ (MC_Lookup_0b[Inverse_sbox[i]] << 8) ^ MC_Lookup_0e[Inverse_sbox[i]];
-      // if(i%16==0) printf("\n");
-      // printf("%08x ", Table0_dec[i]);
    }
 
 

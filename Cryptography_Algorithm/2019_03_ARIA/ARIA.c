@@ -129,14 +129,15 @@ static void DL (const uint8_t *i, uint8_t *o)
 	o[13] = i[ 3] ^ i[ 6] ^ i[ 8] ^ T;
 }
 // Right-rotate 128 bit source string s by n bits and XOR it to target string t
+//RotXOR(W2,  19, e +  16);
 static void RotXOR (const uint8_t *s, uint8_t n, uint8_t *t)
 {
 	uint32_t i, q;
   
-	q = n/8; n %= 8;
+	q = n/8; n %= 8; //BYTE는 8비트 128비트는 16바이트 8비트가 넘어가면 배열의 인덱스를 바꾸어야 한다. 
 	for (i = 0; i < 16; i++) {
-		t[(q+i) % 16] ^= (s[i] >> n);
-		if (n != 0) t[(q+i+1) % 16] ^= (s[i] << (8-n));
+		t[(q+i) % 16] ^= (s[i] >> n); // 안의 n 비트 공간을 남기고 우선 배열의 인덱스 로테이션
+		if (n != 0) t[(q+i+1) % 16] ^= (s[i] << (8-n)); // n 비트 채움
 	}
 }
 
@@ -149,12 +150,12 @@ void ARIA_Enc_Keyexpansion(uint8_t * W0, uint8_t* e){
 	for (i = 0; i < 16; i++) tmp[i] = S[i%4][C[q][i] ^ W0[i]];
 	DL (tmp, W1);
   
-	q = (q==2)? 0 : (q+1);
+	q = (q==2)? 0 : (q+1); //	q=1
 	for (i = 0; i < 16; i++) tmp[i] = S[(2 + i) % 4][C[q][i] ^ W1[i]];
 	DL (tmp, W2);
 	for (i = 0; i < 16; i++) W2[i] ^= W0[i];
   
-	q = (q==2)? 0 : (q+1);
+	q = (q==2)? 0 : (q+1);// q=2
 	for (i = 0; i < 16; i++) tmp[i] = S[i % 4][C[q][i] ^ W2[i]];
 	DL (tmp, W3);
 	for (i = 0; i < 16; i++) W3[i] ^= W1[i];
@@ -200,15 +201,16 @@ static void ARIA(const uint8_t *p, const uint8_t *e, uint8_t *c)
 	int i, j;
 	uint8_t t[16];
   
-	for (j = 0; j < 16; j++) c[j] = p[j];
-		for (i = 0; i < 12/2; i++)
+		memcpy(c,p,16);// 일단 복사해 두고
+		for (i = 0; i < 6; i++) // 짝/홀수 나누어서 라운드를 하도록 돌린다. 
 		{
-			for (j = 0; j < 16; j++) t[j] = S[j%4][e[j] ^ c[j]];
-			DL(t, c); e += 16;
+			for (j = 0; j < 16; j++) t[j] = S[j%4][e[j] ^ c[j]]; //키랑 add 해주고 s 박스
+			DL(t, c); e += 16; // DL 연산 해주고 그다음 키로 가도록 포인터 연산을 한다.
+
 			for (j = 0; j < 16; j++) t[j] = S[(2+j) % 4][e[j] ^ c[j]];
 			DL(t, c); e += 16;
 		}
-		DL(c, t);
+		DL(c, t); // 마지막에 DL 연산을 해줘서 바꿔서 다시 넣어 준다. 
 		for (j = 0; j < 16; j++) c[j] = e[j] ^ t[j];
 }
 

@@ -128,7 +128,7 @@ static void DL (const uint8_t *i, uint8_t *o)
 	o[ 8] = i[ 1] ^ i[ 4] ^ i[15] ^ T;
 	o[13] = i[ 3] ^ i[ 6] ^ i[ 8] ^ T;
 }
-// Right-rotate 128 bit source string s by n bits and XOR it to target string t
+
 //RotXOR(W2,  19, e +  16);
 static void RotXOR (const uint8_t *s, uint8_t n, uint8_t *t)
 {
@@ -141,27 +141,27 @@ static void RotXOR (const uint8_t *s, uint8_t n, uint8_t *t)
 	}
 }
 
+//"S[i%4][C[q][i] ^ W0[i]]"i=16 q=0xff 까지 돌리면 될듯
+
 void ARIA_Enc_Keyexpansion(uint8_t * W0, uint8_t* e){
 
-	uint8_t  i, R=12, q;
+	uint8_t  i;
 	uint8_t tmp[16], W1[16], W2[16], W3[16];
-  //"S[i%4][C[q][i] ^ W0[i]]" ff 까지 돌리면 될듯
-	q = 0;
-	for (i = 0; i < 16; i++) tmp[i] = S[i%4][C[q][i] ^ W0[i]];
+
+	for (i = 0; i < 16; i++) tmp[i] = S[i%4][C[0][i] ^ W0[i]];
 	DL (tmp, W1);
   
-	q = (q==2)? 0 : (q+1); //	q=1
-	for (i = 0; i < 16; i++) tmp[i] = S[(2 + i) % 4][C[q][i] ^ W1[i]];
+	for (i = 0; i < 16; i++) tmp[i] = S[(2 + i) % 4][C[1][i] ^ W1[i]];
 	DL (tmp, W2);
 	for (i = 0; i < 16; i++) W2[i] ^= W0[i];
   
-	q = (q==2)? 0 : (q+1);// q=2
-	for (i = 0; i < 16; i++) tmp[i] = S[i % 4][C[q][i] ^ W2[i]];
+	for (i = 0; i < 16; i++) tmp[i] = S[i % 4][C[2][i] ^ W2[i]];
 	DL (tmp, W3);
 	for (i = 0; i < 16; i++) W3[i] ^= W1[i];
   
-	for (i = 0; i < 16*(R+1); i++) e[i] = 0;
+	for (i = 0; i < 16*(12+1); i++) e[i] = 0;
   
+	//라운드 키 생성
 	RotXOR (W0, 0, e      ); RotXOR (W1,  19, e      );
 	RotXOR (W1, 0, e +  16); RotXOR (W2,  19, e +  16);
 	RotXOR (W2, 0, e +  32); RotXOR (W3,  19, e +  32);
@@ -178,26 +178,26 @@ void ARIA_Enc_Keyexpansion(uint8_t * W0, uint8_t* e){
 	}
 
 void ARIA_Dec_Keyexpansion(uint8_t * W0, uint8_t* d){
-	int  i, j, R=12;
+	int  i, j;
 	uint8_t t[16];
   
 	ARIA_Enc_Keyexpansion(W0, d);
 	for (j = 0; j < 16; j++){
 		t[j] = d[j];
-		d[j] = d[16*R + j];
-		d[16*R + j] = t[j];
-	}// 키 순서를 거꾸로 뒤집는다. 
-	for (i = 1; i <= R/2; i++){
+		d[j] = d[16*12 + j];
+		d[16*12 + j] = t[j];
+	}// 0, 12 키를 바꾼다
+
+	for (i = 1; i <= 6; i++){
 		DL (d + i*16, t); //확산함수 저장
-		DL (d + (R-i)*16, d + i*16); // 뒤집어서 확산함수 저장
-		for (j = 0; j < 16; j++) d[(R-i)*16 + j] = t[j]; // 그리고 다시 뒤집어서 저장해 둔거 꺼낸다
+		DL (d + (12-i)*16, d + i*16); // 1, 11/ 2, 10, /3, 9/ 4, 8/ 5, 7/ 6,6 DL 적용해서 이런식으로 뒤집는다.
+		for (j = 0; j < 16; j++) d[(12-i)*16 + j] = t[j]; 
 	}
 	return;
 	}
 
 static void ARIA(const uint8_t *p, const uint8_t *e, uint8_t *c)
 {
-	const uint8_t round = 12;
 	int i, j;
 	uint8_t t[16];
   
@@ -218,8 +218,9 @@ int main() {
 	uint8_t key[] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f};
 	uint8_t plainText[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff};
 	uint8_t enc_Text[16],dec_Text[16];
+	uint64_t start, end, ref_Cycle, usr_Cycle;
 	uint8_t e[208],d[208], tmp[16];
-	uint8_t i=0;
+	uint32_t i=0;
 	
 ARIA_Enc_Keyexpansion(key, e);
 // printf("e : ");
@@ -230,16 +231,28 @@ ARIA_Enc_Keyexpansion(key, e);
 printf("enc_Text : ");
 		for( i=0; i<16; i++) printf("%02x",enc_Text[i]);
 printf("\n\n");
-
+	
+	start = __rdtsc();
+	for ( i = 0; i < 1000; i++)
+	{
+		// To Do
+	ARIA_Enc_Keyexpansion(key, e);
+	ARIA(plainText, e, enc_Text);// enc 0 
 	ARIA_Dec_Keyexpansion(key, d);
-// printf("d : ");
-// 	for ( i=0; i<208; i++) {if(i%16==0) {printf("\n");} printf("%02x",d[i]);}
-// printf("\n\n");
-
+ //printf("d : ");
+ //	for ( i=0; i<208; i++) {if(i%16==0) {printf("\n");} printf("%02x",d[i]);}
+ //printf("\n\n");
 	ARIA(enc_Text, d, dec_Text); //dec 1
+	}
+
 printf("dec_Text : ");
 		for( i=0; i<16; i++) printf("%02x",dec_Text[i]);
 printf("\n\n");
+
+	end = __rdtsc();
+	ref_Cycle = end - start;
+	printf("Ref. ARIA Cycle : %lld\n", ref_Cycle / i);
+
 	system("pause");
 	return 0;
 }

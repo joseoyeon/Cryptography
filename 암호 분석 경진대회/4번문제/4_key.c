@@ -19,7 +19,6 @@ int main()
     uint32_t H;
     uint32_t j=10, i=0x01020102; 
 // p=0 이면 1번째 들어간다 .
-    FILE*fp=fopen("HASH_32bit_F.xlsx", "at+");
 
     for(uint32_t p = 1; p<33; p++)
     {   j = i << p;
@@ -27,11 +26,9 @@ int main()
  // plainText[0] = (t0[downbyte(rk ^ X[0], 3)] ^ t1[downbyte(rk ^ X[0], 2)] ^ t2[downbyte(rk ^ X[0], 1)] ^ t3[downbyte(rk ^ X[0], 0)]) ^ X[1];
     H =  (t0[downbyte(K[0] ^ j, 3)] ^ t1[downbyte(K[0] ^ j, 2)] ^ t2[downbyte(K[0] ^ j, 1)] ^ t3[downbyte(K[0] ^ j, 0)]) ^ X[1];
     
-    fprintf(fp, "%08X\n", H);
     printf("%08X\n", H);    
     printf("\n");
    }
-   fclose (fp);
    printf("the end\n");
 	system("pause");
 	return 0;

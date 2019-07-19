@@ -4,6 +4,8 @@
 #include <string.h>
 #include <time.h>
 
+//#define TIME
+
 //8,16,24
 #define downbyte(x, y) ((x) >> ((y) << 3)) & 0x000000FFU
 #define upbyte(x, y) ((x) << ((y) << 3))
@@ -190,7 +192,7 @@ void ARIA_Dec_Keyexpansion(uint8_t * W0, uint8_t* d){
 
 	for (i = 1; i <= 6; i++){
 		DL (d + i*16, t); //확산함수 저장
-		DL (d + (12-i)*16, d + i*16); // 1, 11/ 2, 10, /3, 9/ 4, 8/ 5, 7/ 6,6 DL 적용해서 이런식으로 뒤집는다.
+		DL (d + (12-i)*16, d + i*16); // 1, 11/ 2, 10, /3, 9/ 4, 8/ 5, 7/ 6,6 DL 적용해서 뒤집는다.
 		for (j = 0; j < 16; j++) d[(12-i)*16 + j] = t[j]; 
 	}
 	return;
@@ -233,7 +235,7 @@ printf("enc_Text : ");
 printf("\n\n");
 	
 	start = __rdtsc();
-	for ( i = 0; i < 1000; i++)
+	for ( i = 0; i < 10000; i++)
 	{
 		// To Do
 	ARIA_Enc_Keyexpansion(key, e);
@@ -251,7 +253,7 @@ printf("\n\n");
 
 	end = __rdtsc();
 	ref_Cycle = end - start;
-	printf("Ref. ARIA Cycle : %lld\n", ref_Cycle / i);
+	printf("ARIA Cycle : %lld\n", ref_Cycle / i);
 
 	system("pause");
 	return 0;

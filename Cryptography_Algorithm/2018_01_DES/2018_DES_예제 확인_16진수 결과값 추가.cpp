@@ -42,14 +42,14 @@ unsigned long long PC1(unsigned long long*source)
   char i;
   unsigned long long tmp = (1LL<<55), res = 0LL;
   static char perm[] = {57,49,41,33,25,17, 
-  9,1,58,50,42,34,26,18,
-  10, 2,59,51,43,35,27,
-  19,11, 3,60,52,44,36,
-  63,55,47,39,31,23,15,
-  7,62,54,46,38,30,22,
-  14, 6,61,53,45,37,29,
-  21,13, 5,28,20,12, 4};
-                         
+                        9,1,58,50,42,34,26,18,
+                        10, 2,59,51,43,35,27,
+                        19,11, 3,60,52,44,36,
+                        63,55,47,39,31,23,15,
+                        7,62,54,46,38,30,22,
+                        14, 6,61,53,45,37,29,
+                        21,13, 5,28,20,12, 4};
+                                              
   for(i = 0; i < 56; i++, tmp = tmp >> 1LL)
     if ((*source) & (1LL << (64-perm[i]))) res |= tmp;
   return res;
@@ -60,15 +60,15 @@ unsigned long long PC2()
   char i;
   unsigned long long tmp = (1LL<<47), res = 0LL;
   static char perm[] = {14,17,11,24, 1, 5,
-  3,28,15, 6,21,10,
-  23,19,12, 4,26, 8,
-  16, 7,27,20,13, 2,
-41,52,31,37,47,55,
-30,40,51,45,33,48,
-44,49,39,56,34,53,
-46,42,50,36,29,32};
+                        3,28,15, 6,21,10,
+                        23,19,12, 4,26, 8,
+                        16, 7,27,20,13, 2,
+                        41,52,31,37,47,55,
+                        30,40,51,45,33,48,
+                        44,49,39,56,34,53,
+                        46,42,50,36,29,32};
 
-  for(i = 0; i < 48; i++, tmp = tmp >> 1LL) if (KEY & (1LL << (56-perm[i]))) res |= tmp; //ÀüÄ¡ 
+  for(i = 0; i < 48; i++, tmp = tmp >> 1LL) if (KEY & (1LL << (56-perm[i]))) res |= tmp; //ï¿½ï¿½Ä¡ 
 
   return res;
 }
@@ -79,15 +79,15 @@ unsigned long long IP(unsigned long long source)
   unsigned long long tmp = (1LL<<63), res = 0LL;
   
   static char perm[] = {58, 50, 42, 34, 26 ,18 ,10, 2,
-60, 52, 44, 36, 28, 20, 12, 4,
-62, 54, 46, 38, 30, 22, 14, 6,
-64, 56, 48, 40, 32, 24, 16, 8,
-57, 49, 41, 33, 25, 17,  9, 1,
-59, 51, 43, 35, 27, 19, 11, 3,
-61, 53, 45, 37, 29, 21, 13, 5,
- 63, 55, 47, 39, 31, 23, 15, 7};
+                        60, 52, 44, 36, 28, 20, 12, 4,
+                        62, 54, 46, 38, 30, 22, 14, 6,
+                        64, 56, 48, 40, 32, 24, 16, 8,
+                        57, 49, 41, 33, 25, 17,  9, 1,
+                        59, 51, 43, 35, 27, 19, 11, 3,
+                        61, 53, 45, 37, 29, 21, 13, 5,
+                        63, 55, 47, 39, 31, 23, 15, 7};
 
-  for(i = 0; i < 64; i++, tmp = tmp >> 1LL) if (source & (1LL << (64-perm[i]))) res |= tmp; //Àü Ä¡ 
+  for(i = 0; i < 64; i++, tmp = tmp >> 1LL) if (source & (1LL << (64-perm[i]))) res |= tmp; //ï¿½ï¿½ Ä¡ 
   return res;
 }
 
@@ -96,22 +96,15 @@ unsigned long long FP(unsigned long long source)
   char i;
    unsigned long long tmp = (1LL<<63), res = 0LL;
   static char perm[] =  {40, 8, 48, 16, 56, 24, 64, 32,
-
                                                        39, 7, 47, 15, 55, 23, 63, 31,
-
                                                        38, 6, 46, 14, 54, 22, 62, 30,
-
                                                        37, 5, 45, 13, 53, 21, 61, 29,
-
                                                        36, 4, 44, 12, 52, 20, 60, 28,
-
                                                        35, 3, 43, 11, 51, 19, 59, 27,
-
                                                        34, 2, 42, 10, 50, 18, 58, 26,
-
                                                        33, 1, 41,  9, 49, 17, 57, 25};
 
-    for(i = 0; i < 64; i++, tmp = tmp >> 1LL) if (source & (1LL << (64-perm[i]))) res |= tmp; //Àü Ä¡ 
+    for(i = 0; i < 64; i++, tmp = tmp >> 1LL) if (source & (1LL << (64-perm[i]))) res |= tmp; //ï¿½ï¿½ Ä¡ 
   return res;
 }
 
@@ -163,7 +156,7 @@ unsigned P(unsigned source)
   for(i = 0; i < 32; i++, tmp = tmp >> 1) if (source & (1 << (32-perm[i]))) res |= tmp;
   
   /*
-  printf("Æò¹® P\n");
+  printf("ï¿½ï¿½ P\n");
 print_binary((unsigned long long*)&res, 4);
   */
   return res;
@@ -205,10 +198,10 @@ unsigned S(unsigned long long source)
                                  2, 1,14, 7, 4,10, 8,13,15,12, 9, 0, 3, 5, 6,11 } };
 
   char i;
-   unsigned int z=0; //ÀúÀå 
+   unsigned int z=0; //ï¿½ï¿½ï¿½ï¿½ 
   unsigned res=0;
   /*
-   printf("Æò¹® S- source \n");
+   printf("ï¿½ï¿½ S- source \n");
    print_binary(&source, 8);
 */
   for(i = 0, res = 0; i < 8; i++)
@@ -218,7 +211,7 @@ unsigned S(unsigned long long source)
     (i!=7)?res <<=4:0;
  } 
   /*
-   printf("Æò¹® S\n");
+   printf("ï¿½ï¿½ S\n");
 print_binary((unsigned long long*)&res, 4);
  */
   return res; 
@@ -231,7 +224,7 @@ unsigned rotation(unsigned source, char c, char f)
   c = rotation_sheet[c];
   
   if (f) while(c-- > 0) source = (source >> 1) | ((source & 1) << 27); 
-  else    while(c-- > 0) source = ((source << 1) & 0x0FFFFFFF) | (source >> 27); // ¾ÏÈ£È­ 
+  else    while(c-- > 0) source = ((source << 1) & 0x0FFFFFFF) | (source >> 27); // ï¿½ï¿½È£È­ 
   return source;
 }
 
@@ -242,15 +235,15 @@ unsigned long long EN(unsigned long long source)
 
   source = IP(source);
   /* 
-   printf("Æò¹® IP \n");
+   printf("ï¿½ï¿½ IP \n");
    print_binary(&source, 8);
     */
   R = *((unsigned *)&source);
   L = *(((unsigned *)&source)+1);
   
-   /* printf("Æò¹® L\n");
+   /* printf("ï¿½ï¿½ L\n");
     print_binary((unsigned long long*)&L, 4);
-    printf("Æò¹®  R \n");
+    printf("ï¿½ï¿½  R \n");
     print_binary((unsigned long long*)&R, 4);
     
    unsigned long long tmp= EX(L);
@@ -261,7 +254,7 @@ unsigned long long EN(unsigned long long source)
    D = (KEY&0x0FFFFFFF);
    
 
-/*¶ó¿îµå ÇÔ¼ö ½ÇÇà*/  
+/*ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½*/  
   while(++i < 16)
   {
     Ln = R;
@@ -372,7 +365,7 @@ unsigned long long source_str = *(unsigned long long*)&source_str_char;
   unsigned long long  encrypted_str, decrypted_str= 0LL;
 
   {
-    printf("[¿øº»] : ");
+    printf("[ï¿½ï¿½ï¿½ï¿½] : ");
    print_hex(&source_str);
    print_binary(&source_str, 8);
    print_char(source_str);
@@ -382,12 +375,12 @@ unsigned long long source_str = *(unsigned long long*)&source_str_char;
    print_binary(&source_key, 8);
    
     encryption(&source_str, &encrypted_str, &source_key);
-    printf("[¾ÏÈ£] : ");
+    printf("[ï¿½ï¿½È£] : ");
    print_hex(&encrypted_str);
  print_binary(&encrypted_str, 8);
 
     decryption(&encrypted_str, &decrypted_str, &source_key);
-    printf("[º¹È£] : ");
+    printf("[ï¿½ï¿½È£] : ");
    print_hex(&decrypted_str);
   print_binary(&decrypted_str, 8);
    print_char(decrypted_str);

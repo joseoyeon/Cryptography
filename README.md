@@ -28,3 +28,16 @@ Cryptography study 2019.7.31 http://cryptocontest.co.kr/
  - AES32 MC LOOKUP
   
  - AES32 LOOKUP INPUT CHAR
+
+ ## 3. ARIA
+  
+  ##### 1. ARIA-128(2019)
+
+  ![ARIA](Cryptography_Algorithm/2019_03_ARIA/%EA%B2%B0%EA%B3%BC%20%EC%BA%A1%EC%B2%98/ARIA%20%EA%B2%B0%EA%B3%BC%20%EB%B3%B4%EC%9D%B4%EA%B8%B0.JPG?raw=true)
+
+
+ ## 4. LEA  
+
+  ##### 1. LEA-128(2019)
+
+  ![LEA](https://github.com/joseoyeon/Cryptography/blob/master/Cryptography_Algorithm/2019_05_LEA/%EC%B0%B8%EA%B3%A0/LEA_%EC%95%94%ED%98%B8%ED%99%94.jpg?raw=true)

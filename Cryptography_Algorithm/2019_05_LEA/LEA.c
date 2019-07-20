@@ -41,7 +41,6 @@ int main() {
     memcpy(P, X, 16);
     for (i=0; i<16; i++) printf("%02x ", P[i]);
     // for (i=0; i<4; i++) printf("%08x ", X[i]);
-    /*출력 바꿔서 다시 저장하는 함수 바이트 단위로*/
 
     LEA_dec_KeySchedule(K, RK, 24);
     LEA_Decrypt(X, RK, 24);

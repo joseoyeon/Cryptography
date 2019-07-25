@@ -70,6 +70,7 @@ void LEA_Encrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
 
     for(i=0; i<Round; i++)
     {
+        
         /*################출력####################*/
     // printf("\n%d, text : ",i );
     // for (q=0; q<4; q++) printf("%08x ", X[q]);
@@ -149,7 +150,12 @@ void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
         T[3] = (T[3] + ROL(C[i % 4], i+3));
         T[3]  = ROL(T[3] ,11);
 
-        memcpy(RK+j, T, key_len);
+        RK[j] = T[0];
+        RK[j+1] = T[1];
+        RK[j+2] = T[2];
+        RK[j+3] = T[1];
+        RK[j+4] = T[3];
+        RK[j+5] = T[1];
         j+=6;
     }
         /*################출력####################*/
@@ -181,7 +187,12 @@ void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
         T[3] = (T[3] + ROL(C[i % 4], i+3));
         T[3]  = ROL(T[3] ,11);
 
-        memcpy(RK+j, T, key_len);
+        RK[j] = T[0];
+        RK[j+1] = T[1];
+        RK[j+2] = T[2];
+        RK[j+3] = T[1];
+        RK[j+4] = T[3];
+        RK[j+5] = T[1];
         j-=6; // 순서만 뒤집음
     }
         /*################출력####################*/

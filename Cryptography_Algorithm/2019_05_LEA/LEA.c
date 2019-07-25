@@ -4,15 +4,9 @@
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
-#define KEY_LEN 256
+#define KEY_LEN 256 // 키 길이 BIT 단위
 #define ROL(x,i) (((x) << (i)) | ((x) >> (32-(i))))
 #define ROR(x,i) (((x) >> (i)) | ((x) << (32-(i))))
-#define BitToInt(x) 
-#define IntToBit(n)
-// K 비트 128비트라고 하자
-// 라운드 키 : NR 개, 192 bit
-// 암호화 키 스케줄링
-// 라운드 함수 Round : feistal 구조로 이거 하나 필요
 
 void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round);
 void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round);
@@ -42,6 +36,7 @@ int main() {
     else if(KEY_LEN == 256){memcpy(RK, K, 32); key_len = 32; round = 32;}
     else{printf("error! key_len check, 128, 192, 256.");}
 
+    /*############## TEST ################# */
     printf("\nPlainText : ");
     for (i=0; i<16; i++) printf("%02x ", P[i]);
     printf("\nKey : ");
@@ -91,9 +86,8 @@ void LEA_Encrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
     }
 }
 
-
 /*
-Feistel 구조인데 왜 암복호화가 따로 정의 되어 있는지 모르겠다...
+Feistel 구조인데 왜 암복호화가 따로 정의 되어 있는지 모르겠다.
 ROR 부분과 +/-를 다르게 한 것 뿐 구조는 암호화 과정과 동일하다.
 */
 

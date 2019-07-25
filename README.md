@@ -35,6 +35,6 @@
 
  ## 4. LEA  
 
-  ##### 1. LEA-128(2019)
+  ##### 1. LEA-128/192/256(2019)
 
 ![LEA](https://user-images.githubusercontent.com/46625602/61846555-79c05300-aee2-11e9-8f92-3617c53df8a4.png)

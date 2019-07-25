@@ -4,6 +4,7 @@
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
+#define KEY_LEN 128
 #define ROL(x,i) (((x) << (i)) | ((x) >> (32-(i))))
 #define ROR(x,i) (((x) >> (i)) | ((x) << (32-(i))))
 #define BitToInt(x) 
@@ -18,6 +19,8 @@ void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round);
 void LEA_Encrypt(uint32_t *X, uint32_t *RK, uint8_t Round);
 void LEA_Decrypt(uint32_t *X, uint32_t *RK, uint8_t Round);
 
+int key_len;
+
 int main() {
     uint8_t K[16] = {0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78, 0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0};
     uint8_t P[16]=  {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
@@ -25,25 +28,32 @@ int main() {
     uint32_t D[4] = {0,};
     uint32_t RK[144] = {0,};
     uint8_t i=0, k=0;
+    uint8_t round=0;
 
+/*#############평문은 항상 16으로 고정#########*/
     memcpy(X, P, 16);
-    memcpy(RK, K, 16);
+
+    /*############## key_len 체크################# */
+    if(KEY_LEN == 128) {memcpy(RK, K, 16); key_len = 16; round = 24;} // 128/32
+    else if(KEY_LEN == 192){memcpy(RK, K, 24); key_len = 24; round = 28;}
+    else if(KEY_LEN == 256){memcpy(RK, K, 32); key_len = 32; round = 32;}
+    else{printf("error! key_len check, 128, 192, 256.");}
 
     printf("\nPlainText : ");
     for (i=0; i<16; i++) printf("%02x ", P[i]);
     printf("\nKey : ");
-    for (i=0; i<16; i++) printf("%02x ", K[i]);    
+    for (i=0; i<key_len; i++) printf("%02x ", K[i]);    
 
-    LEA_enc_KeySchedule(K, RK, 24);
-    LEA_Encrypt(X, RK, 24);
+    LEA_enc_KeySchedule(K, RK, round);
+    LEA_Encrypt(X, RK, round);
 
     printf("\nEncrypt : ");
     memcpy(P, X, 16);
     for (i=0; i<16; i++) printf("%02x ", P[i]);
     // for (i=0; i<4; i++) printf("%08x ", X[i]);
 
-    LEA_dec_KeySchedule(K, RK, 24);
-    LEA_Decrypt(X, RK, 24);
+    LEA_dec_KeySchedule(K, RK, round);
+    LEA_Decrypt(X, RK, round);
 
     printf("\nDecrypt : ");
     memcpy(P, X, 16);
@@ -60,7 +70,6 @@ void LEA_Encrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
 
     for(i=0; i<Round; i++)
     {
-        
         /*################출력####################*/
     // printf("\n%d, text : ",i );
     // for (q=0; q<4; q++) printf("%08x ", X[q]);
@@ -82,6 +91,12 @@ void LEA_Encrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
     memcpy(X, X_, 16);
     }
 }
+
+
+/*
+Feistel 구조인데 왜 암복호화가 따로 정의 되어 있는지 모르겠다...
+ROR 부분과 +/-를 다르게 한 것 뿐 구조는 암호화 과정과 동일하다.
+*/
 
 void LEA_Decrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
     uint32_t X_[4]; 
@@ -118,7 +133,7 @@ void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
     uint32_t T[4];
     uint32_t i=0,j=0,q;
 
-    memcpy(T, K, 16);
+    memcpy(T, K, key_len);
 
     for(i=0; i<Round; i++)
     {
@@ -134,12 +149,7 @@ void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
         T[3] = (T[3] + ROL(C[i % 4], i+3));
         T[3]  = ROL(T[3] ,11);
 
-        RK[j] = T[0];
-        RK[j+1] = T[1];
-        RK[j+2] = T[2];
-        RK[j+3] = T[1];
-        RK[j+4] = T[3];
-        RK[j+5] = T[1];
+        memcpy(RK+j, T, key_len);
         j+=6;
     }
         /*################출력####################*/
@@ -149,14 +159,13 @@ void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
     //     printf("%08x ", RK[q]);}
     // printf("\n\nend key\n\n");
             /*####################################*/
-
 }
 
 void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
     uint32_t T[4];
     uint32_t i=0,j=138,q;
     
-    memcpy(T, K, 16);
+    memcpy(T, K, key_len);
     // j=138;
     for(i=0; i<Round; i++)
     {
@@ -172,14 +181,8 @@ void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
         T[3] = (T[3] + ROL(C[i % 4], i+3));
         T[3]  = ROL(T[3] ,11);
 
-        RK[j] = T[0];
-        RK[j+1] = T[1];
-        RK[j+2] = T[2];
-        RK[j+3] = T[1];
-        RK[j+4] = T[3];
-        RK[j+5] = T[1];
-        // if(j-6 >0)
-        j-=6;
+        memcpy(RK+j, T, key_len);
+        j-=6; // 순서만 뒤집음
     }
         /*################출력####################*/
     /*키 출력*/

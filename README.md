@@ -1,4 +1,7 @@
 # Cryptography
+Cryptography study 2019.7.31 http://cryptocontest.co.kr/
+
+![Cryptographycontestschedule](./MD_Explanation/Cryptographycontestschedule.JPG)
 
 # In Cryptography_Algorithm Repositories
 
@@ -37,4 +40,4 @@
 
   ##### 1. LEA-128/192/256(2019)
 
-![LEA](https://user-images.githubusercontent.com/46625602/61846555-79c05300-aee2-11e9-8f92-3617c53df8a4.png)
+  ![LEA](https://github.com/joseoyeon/Cryptography/blob/master/Cryptography_Algorithm/2019_05_LEA/%EC%B0%B8%EA%B3%A0/LEA_%EC%95%94%ED%98%B8%ED%99%94.jpg?raw=true)

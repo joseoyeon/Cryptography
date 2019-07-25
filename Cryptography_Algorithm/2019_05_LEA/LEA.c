@@ -4,7 +4,7 @@
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
-#define KEY_LEN 128
+#define KEY_LEN 256
 #define ROL(x,i) (((x) << (i)) | ((x) >> (32-(i))))
 #define ROR(x,i) (((x) >> (i)) | ((x) << (32-(i))))
 #define BitToInt(x) 
@@ -22,11 +22,14 @@ void LEA_Decrypt(uint32_t *X, uint32_t *RK, uint8_t Round);
 int key_len;
 
 int main() {
-    uint8_t K[16] = {0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78, 0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0};
-    uint8_t P[16]=  {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
-    uint32_t X[4];
+    uint8_t K[32] = {0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78, 0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0,
+                    0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f};
+    // uint8_t P[16]=  {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f}; // 128
+    // uint8_t P[16]=  {0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f}; // 192
+    uint8_t P[16]=  {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f}; //256
+    uint32_t X[4] = {0,};
     uint32_t D[4] = {0,};
-    uint32_t RK[144] = {0,};
+    uint32_t RK[192] = {0,};
     uint8_t i=0, k=0;
     uint8_t round=0;
 
@@ -131,36 +134,103 @@ void LEA_Decrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
 const uint32_t C[8] = {0xc3efe9db, 0x44626b02, 0x79e27c8a, 0x78df30ec, 0x715ea49e, 0xc785da0a, 0xe04ef22a, 0xe5c40957};
 
 void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
-    uint32_t T[4];
+    uint32_t T[8];
     uint32_t i=0,j=0,q;
 
     memcpy(T, K, key_len);
 
-    for(i=0; i<Round; i++)
-    {
-        T[0] = (T[0]+ROL(C[i % 4], i));
-        T[0]  = ROL(T[0] ,1);
+    switch (Round){
+    case 24:
+        for(i=0; i<24; i++)
+        {
+            T[0] = (T[0]+ROL(C[i % 4], i));
+            T[0]  = ROL(T[0] ,1);
 
-        T[1] = (T[1] + ROL(C[i % 4], i+1));
-        T[1]  = ROL(T[1], 3);
+            T[1] = (T[1] + ROL(C[i % 4], i+1));
+            T[1]  = ROL(T[1], 3);
 
-        T[2] = (T[2] + ROL(C[i % 4], i+2));
-        T[2]  = ROL(T[2] ,6);
+            T[2] = (T[2] + ROL(C[i % 4], i+2));
+            T[2]  = ROL(T[2] ,6);
 
-        T[3] = (T[3] + ROL(C[i % 4], i+3));
-        T[3]  = ROL(T[3] ,11);
+            T[3] = (T[3] + ROL(C[i % 4], i+3));
+            T[3]  = ROL(T[3] ,11);
 
-        RK[j] = T[0];
-        RK[j+1] = T[1];
-        RK[j+2] = T[2];
-        RK[j+3] = T[1];
-        RK[j+4] = T[3];
-        RK[j+5] = T[1];
-        j+=6;
+            RK[j] = T[0];
+            RK[j+1] = T[1];
+            RK[j+2] = T[2];
+            RK[j+3] = T[1];
+            RK[j+4] = T[3];
+            RK[j+5] = T[1];
+            j+=6;
+        }
+        break;
+    case 28: 
+        for(i=0; i<28; i++)
+            {
+                T[0] = (T[0]+ROL(C[i % 6], i));
+                T[0]  = ROL(T[0] ,1);
+
+                T[1] = (T[1] + ROL(C[i % 6], i+1));
+                T[1]  = ROL(T[1], 3);
+
+                T[2] = (T[2] + ROL(C[i % 6], i+2));
+                T[2]  = ROL(T[2] ,6);
+
+                T[3] = (T[3] + ROL(C[i % 6], i+3));
+                T[3]  = ROL(T[3] ,11);
+
+                T[4] = (T[4] + ROL(C[i % 6], i+4));
+                T[4]  = ROL(T[4] ,13);
+
+                T[5] = (T[5] + ROL(C[i % 6], i+5));
+                T[5]  = ROL(T[5] ,17);
+
+                RK[j] = T[0];
+                RK[j+1] = T[1];
+                RK[j+2] = T[2];
+                RK[j+3] = T[3];
+                RK[j+4] = T[4];
+                RK[j+5] = T[5];
+                j+=6;
+            }
+            break;
+    case 32:   
+        for(i=0; i<32; i++) 
+            {
+                T[6*i % 8] = (T[6*i % 8]+ROL(C[i % 8], i));
+                T[6*i % 8]  = ROL(T[6*i % 8] ,1);
+
+                T[(6*i+1) % 8] = (T[(6*i+1) % 8] + ROL(C[i % 8], i+1));
+                T[(6*i+1) % 8]  = ROL(T[(6*i+1) % 8], 3);
+
+                T[(6*i+2) % 8] = (T[(6*i+2) % 8] + ROL(C[i % 8], i+2));
+                T[(6*i+2) % 8]  = ROL(T[(6*i+2) % 8] ,6);
+
+                T[(6*i+3) % 8] = (T[(6*i+3) % 8] + ROL(C[i % 8], i+3));
+                T[(6*i+3) % 8]  = ROL(T[(6*i+3) % 8] ,11);
+
+                T[(6*i+4) % 8] = (T[(6*i+4) % 8] + ROL(C[i % 8], i+4));
+                T[(6*i+4) % 8]  = ROL(T[(6*i+4) % 8] ,13);
+
+                T[(6*i+5) % 8] = (T[(6*i+5) % 8] + ROL(C[i % 8], i+5));
+                T[(6*i+5) % 8]  = ROL(T[(6*i+5) % 8] ,17);
+
+                RK[j] = T[6*i % 8];
+                RK[j+1] = T[(6*i+1) % 8];
+                RK[j+2] = T[(6*i+2) % 8];
+                RK[j+3] = T[(6*i+3) % 8];
+                RK[j+4] = T[(6*i+4) % 8];
+                RK[j+5] = T[(6*i+5) % 8];
+                j+=6;
+            }
+            break;
+    default:
+        break;
     }
+
         /*################출력####################*/
     /*키 출력*/
-    // for (q=0; q<144; q++) {
+    // for (q=0; q<192; q++) {
     //     if(q%6 == 0) printf("\n");
     //     printf("%08x ", RK[q]);}
     // printf("\n\nend key\n\n");
@@ -168,36 +238,106 @@ void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
 }
 
 void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
-    uint32_t T[4];
-    uint32_t i=0,j=138,q;
+    uint32_t T[8];
+    uint32_t i=0,j,q;
     
     memcpy(T, K, key_len);
-    // j=138;
-    for(i=0; i<Round; i++)
-    {
-        T[0] = (T[0]+ROL(C[i % 4], i));
-        T[0]  = ROL(T[0] ,1);
     
-        T[1] = (T[1] + ROL(C[i % 4], i+1));
-        T[1]  = ROL(T[1], 3);
+    switch (Round){
+    case 24:
+        j=138;
+        for(i=0; i<24; i++)
+        {
+            T[0] = (T[0]+ROL(C[i % 4], i));
+            T[0]  = ROL(T[0] ,1);
 
-        T[2] = (T[2] + ROL(C[i % 4], i+2));
-        T[2]  = ROL(T[2] ,6);
+            T[1] = (T[1] + ROL(C[i % 4], i+1));
+            T[1]  = ROL(T[1], 3);
 
-        T[3] = (T[3] + ROL(C[i % 4], i+3));
-        T[3]  = ROL(T[3] ,11);
+            T[2] = (T[2] + ROL(C[i % 4], i+2));
+            T[2]  = ROL(T[2] ,6);
 
-        RK[j] = T[0];
-        RK[j+1] = T[1];
-        RK[j+2] = T[2];
-        RK[j+3] = T[1];
-        RK[j+4] = T[3];
-        RK[j+5] = T[1];
-        j-=6; // 순서만 뒤집음
+            T[3] = (T[3] + ROL(C[i % 4], i+3));
+            T[3]  = ROL(T[3] ,11);
+
+            RK[j] = T[0];
+            RK[j+1] = T[1];
+            RK[j+2] = T[2];
+            RK[j+3] = T[1];
+            RK[j+4] = T[3];
+            RK[j+5] = T[1];
+            j-=6;
+        }
+        break;
+    case 28: 
+        j =162;
+        for(i=0; i<28; i++)
+            {
+                T[0] = (T[0]+ROL(C[i % 6], i));
+                T[0]  = ROL(T[0] ,1);
+
+                T[1] = (T[1] + ROL(C[i % 6], i+1));
+                T[1]  = ROL(T[1], 3);
+
+                T[2] = (T[2] + ROL(C[i % 6], i+2));
+                T[2]  = ROL(T[2] ,6);
+
+                T[3] = (T[3] + ROL(C[i % 6], i+3));
+                T[3]  = ROL(T[3] ,11);
+
+                T[4] = (T[4] + ROL(C[i % 6], i+4));
+                T[4]  = ROL(T[4] ,13);
+
+                T[5] = (T[5] + ROL(C[i % 6], i+5));
+                T[5]  = ROL(T[5] ,17);
+
+                RK[j] = T[0];
+                RK[j+1] = T[1];
+                RK[j+2] = T[2];
+                RK[j+3] = T[3];
+                RK[j+4] = T[4];
+                RK[j+5] = T[5];
+                j-=6;
+            }
+            break;
+    case 32:   
+        j=186;
+        for(i=0; i<32; i++) 
+            {
+                T[6*i % 8] = (T[6*i % 8]+ROL(C[i % 8], i));
+                T[6*i % 8]  = ROL(T[6*i % 8] ,1);
+
+                T[(6*i+1) % 8] = (T[(6*i+1) % 8] + ROL(C[i % 8], i+1));
+                T[(6*i+1) % 8]  = ROL(T[(6*i+1) % 8], 3);
+
+                T[(6*i+2) % 8] = (T[(6*i+2) % 8] + ROL(C[i % 8], i+2));
+                T[(6*i+2) % 8]  = ROL(T[(6*i+2) % 8] ,6);
+
+                T[(6*i+3) % 8] = (T[(6*i+3) % 8] + ROL(C[i % 8], i+3));
+                T[(6*i+3) % 8]  = ROL(T[(6*i+3) % 8] ,11);
+
+                T[(6*i+4) % 8] = (T[(6*i+4) % 8] + ROL(C[i % 8], i+4));
+                T[(6*i+4) % 8]  = ROL(T[(6*i+4) % 8] ,13);
+
+                T[(6*i+5) % 8] = (T[(6*i+5) % 8] + ROL(C[i % 8], i+5));
+                T[(6*i+5) % 8]  = ROL(T[(6*i+5) % 8] ,17);
+
+                RK[j] = T[6*i % 8];
+                RK[j+1] = T[(6*i+1) % 8];
+                RK[j+2] = T[(6*i+2) % 8];
+                RK[j+3] = T[(6*i+3) % 8];
+                RK[j+4] = T[(6*i+4) % 8];
+                RK[j+5] = T[(6*i+5) % 8];
+                j-=6;
+            }
+            break;
+    default:
+        break;
     }
+
         /*################출력####################*/
     /*키 출력*/
-    // for (q=0; q<144; q++) {
+    // for (q=0; q<192; q++) {
     //     if(q%6 == 0) printf("\n");
     //     printf("%08x ", RK[q]);}
     // printf("\n\nend key\n\n");

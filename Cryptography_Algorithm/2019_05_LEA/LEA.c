@@ -19,7 +19,7 @@ void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round);
 void LEA_Encrypt(uint32_t *X, uint32_t *RK, uint8_t Round);
 void LEA_Decrypt(uint32_t *X, uint32_t *RK, uint8_t Round);
 
-int key_len;
+int key_len; // BYTE 단위의 키 길이
 
 int main() {
     uint8_t K[32] = {0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78, 0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0,
@@ -69,7 +69,7 @@ int main() {
 
 void LEA_Encrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
     uint32_t X_[4]; 
-    uint32_t i,j=0,q;
+    uint32_t i,j=0,q; //q 는 출력을 위한 변수
 
     for(i=0; i<Round; i++)
     {
@@ -82,16 +82,11 @@ void LEA_Encrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
     // for (q=j; q<j+6; q++){ printf("%08x ", RK[q]);}}
         /*####################################*/
 
-        X_[0] = (X[0]^RK[j++]) + (X[1]^RK[j++]);
-        X_[0] = ROL(X_[0], 9);
-        
-        X_[1] = (X[1]^RK[j++]) + (X[2]^RK[j++]);
-        X_[1] = ROR(X_[1], 5);
-        
-        X_[2] = (X[2]^RK[j++]) + (X[3]^RK[j++]);
-        X_[2] = ROR(X_[2], 3);
-
+        X_[0] = ROL((X[0]^RK[j+0]) + (X[1]^RK[j+1]),9);
+        X_[1] = ROR((X[1]^RK[j+2]) + (X[2]^RK[j+3]),5);
+        X_[2] = ROR((X[2]^RK[j+4]) + (X[3]^RK[j+5]),3);
         X_[3] = X[0];
+        j += 6;
     memcpy(X, X_, 16);
     }
 }
@@ -119,7 +114,7 @@ void LEA_Decrypt(uint32_t * X, uint32_t *RK, uint8_t Round){
         X_[0] = X[3];
 
         X_[1] = ROR(X[0], 9);
-        X_[1] = (X_[1] - (X_[0]^RK[j++])) ^ RK[j++];
+        X_[1] = (X_[1] - (X[3]^RK[j++])) ^ RK[j++];
 
         X_[2] = ROL(X[1], 5);
         X_[2] = (X_[2] - (X_[1]^RK[j++])) ^ RK[j++];
@@ -196,31 +191,31 @@ void LEA_enc_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
             break;
     case 32:   
         for(i=0; i<32; i++) 
-            {
-                T[6*i % 8] = (T[6*i % 8]+ROL(C[i % 8], i));
-                T[6*i % 8]  = ROL(T[6*i % 8] ,1);
+            { q = 6*i;
+                T[q % 8] = (T[q % 8]+ROL(C[i % 8], i));
+                T[q % 8]  = ROL(T[q % 8] ,1);
 
-                T[(6*i+1) % 8] = (T[(6*i+1) % 8] + ROL(C[i % 8], i+1));
-                T[(6*i+1) % 8]  = ROL(T[(6*i+1) % 8], 3);
+                T[(q+1) % 8] = (T[(q+1) % 8] + ROL(C[i % 8], i+1));
+                T[(q+1) % 8]  = ROL(T[(q+1) % 8], 3);
 
-                T[(6*i+2) % 8] = (T[(6*i+2) % 8] + ROL(C[i % 8], i+2));
-                T[(6*i+2) % 8]  = ROL(T[(6*i+2) % 8] ,6);
+                T[(q+2) % 8] = (T[(q+2) % 8] + ROL(C[i % 8], i+2));
+                T[(q+2) % 8]  = ROL(T[(q+2) % 8] ,6);
 
-                T[(6*i+3) % 8] = (T[(6*i+3) % 8] + ROL(C[i % 8], i+3));
-                T[(6*i+3) % 8]  = ROL(T[(6*i+3) % 8] ,11);
+                T[(q+3) % 8] = (T[(q+3) % 8] + ROL(C[i % 8], i+3));
+                T[(q+3) % 8]  = ROL(T[(q+3) % 8] ,11);
 
-                T[(6*i+4) % 8] = (T[(6*i+4) % 8] + ROL(C[i % 8], i+4));
-                T[(6*i+4) % 8]  = ROL(T[(6*i+4) % 8] ,13);
+                T[(q+4) % 8] = (T[(q+4) % 8] + ROL(C[i % 8], i+4));
+                T[(q+4) % 8]  = ROL(T[(q+4) % 8] ,13);
 
-                T[(6*i+5) % 8] = (T[(6*i+5) % 8] + ROL(C[i % 8], i+5));
-                T[(6*i+5) % 8]  = ROL(T[(6*i+5) % 8] ,17);
+                T[(q+5) % 8] = (T[(q+5) % 8] + ROL(C[i % 8], i+5));
+                T[(q+5) % 8]  = ROL(T[(q+5) % 8] ,17);
 
-                RK[j] = T[6*i % 8];
-                RK[j+1] = T[(6*i+1) % 8];
-                RK[j+2] = T[(6*i+2) % 8];
-                RK[j+3] = T[(6*i+3) % 8];
-                RK[j+4] = T[(6*i+4) % 8];
-                RK[j+5] = T[(6*i+5) % 8];
+                RK[j] = T[q % 8];
+                RK[j+1] = T[(q+1) % 8];
+                RK[j+2] = T[(q+2) % 8];
+                RK[j+3] = T[(q+3) % 8];
+                RK[j+4] = T[(q+4) % 8];
+                RK[j+5] = T[(q+5) % 8];
                 j+=6;
             }
             break;
@@ -303,31 +298,31 @@ void LEA_dec_KeySchedule(uint8_t* K, uint32_t* RK, uint8_t Round){
     case 32:   
         j=186;
         for(i=0; i<32; i++) 
-            {
-                T[6*i % 8] = (T[6*i % 8]+ROL(C[i % 8], i));
-                T[6*i % 8]  = ROL(T[6*i % 8] ,1);
+            { q= 6*i;
+                T[q % 8] = (T[q % 8]+ROL(C[i % 8], i));
+                T[q % 8]  = ROL(T[q % 8] ,1);
 
-                T[(6*i+1) % 8] = (T[(6*i+1) % 8] + ROL(C[i % 8], i+1));
-                T[(6*i+1) % 8]  = ROL(T[(6*i+1) % 8], 3);
+                T[(q+1) % 8] = (T[(q+1) % 8] + ROL(C[i % 8], i+1));
+                T[(q+1) % 8]  = ROL(T[(q+1) % 8], 3);
 
-                T[(6*i+2) % 8] = (T[(6*i+2) % 8] + ROL(C[i % 8], i+2));
-                T[(6*i+2) % 8]  = ROL(T[(6*i+2) % 8] ,6);
+                T[(q+2) % 8] = (T[(q+2) % 8] + ROL(C[i % 8], i+2));
+                T[(q+2) % 8]  = ROL(T[(q+2) % 8] ,6);
 
-                T[(6*i+3) % 8] = (T[(6*i+3) % 8] + ROL(C[i % 8], i+3));
-                T[(6*i+3) % 8]  = ROL(T[(6*i+3) % 8] ,11);
+                T[(q+3) % 8] = (T[(q+3) % 8] + ROL(C[i % 8], i+3));
+                T[(q+3) % 8]  = ROL(T[(q+3) % 8] ,11);
 
-                T[(6*i+4) % 8] = (T[(6*i+4) % 8] + ROL(C[i % 8], i+4));
-                T[(6*i+4) % 8]  = ROL(T[(6*i+4) % 8] ,13);
+                T[(q+4) % 8] = (T[(q+4) % 8] + ROL(C[i % 8], i+4));
+                T[(q+4) % 8]  = ROL(T[(q+4) % 8] ,13);
 
-                T[(6*i+5) % 8] = (T[(6*i+5) % 8] + ROL(C[i % 8], i+5));
-                T[(6*i+5) % 8]  = ROL(T[(6*i+5) % 8] ,17);
+                T[(q+5) % 8] = (T[(q+5) % 8] + ROL(C[i % 8], i+5));
+                T[(q+5) % 8]  = ROL(T[(q+5) % 8] ,17);
 
-                RK[j] = T[6*i % 8];
-                RK[j+1] = T[(6*i+1) % 8];
-                RK[j+2] = T[(6*i+2) % 8];
-                RK[j+3] = T[(6*i+3) % 8];
-                RK[j+4] = T[(6*i+4) % 8];
-                RK[j+5] = T[(6*i+5) % 8];
+                RK[j] = T[q % 8];
+                RK[j+1] = T[(q+1) % 8];
+                RK[j+2] = T[(q+2) % 8];
+                RK[j+3] = T[(q+3) % 8];
+                RK[j+4] = T[(q+4) % 8];
+                RK[j+5] = T[(q+5) % 8];
                 j-=6;
             }
             break;
